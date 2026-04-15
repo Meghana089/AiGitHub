@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Classifier - AI GitHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .emotion-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .emotion-box {
+            display: inline-block;
+            padding: 20px 40px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .confidence-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .confidence-display h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .confidence-bar-container {
+            background: white;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+
+        .probabilities {
+            margin-top: 20px;
+        }
+
+        .probabilities h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .probability-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+
+        .probability-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 100px;
+            text-transform: capitalize;
+        }
+
+        .probability-bar-wrapper {
+            flex: 1;
+            background: white;
+            border-radius: 5px;
+            height: 25px;
+            border: 1px solid #ddd;
+            overflow: hidden;
+        }
+
+        .probability-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+
+        .probability-percentage {
+            min-width: 50px;
+            text-align: right;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .samples-section {
+            margin-top: 30px;
+        }
+
+        .samples-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .sample-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+
+        .sample-item:hover {
+            transform: translateX(5px);
+        }
+
+        .sample-text {
+            flex: 1;
+            color: #555;
+        }
+
+        .sample-emotion {
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #c33;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .sample-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .sample-emotion {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Emotion Classifier</h1>
+            <p>Analyze the emotion in any text using AI</p>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+
+        <div class="input-section">
+            <label for="textInput">Enter Your Text:</label>
+            <textarea id="textInput" placeholder="Type or paste your text here..."></textarea>
+            <div class="button-group">
+                <button onclick="analyzeEmotion()">Analyze Emotion</button>
+                <button class="btn-secondary" onclick="loadSamples()">Load Samples</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <span class="spinner"></span> Analyzing...
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="emotion-display">
+                <div class="emotion-box" id="emotionBox"></div>
+            </div>
+
+            <div class="confidence-display">
+                <h3>Confidence Score</h3>
+                <div class="confidence-bar-container">
+                    <div class="confidence-bar" id="confidenceBar"></div>
+                </div>
+            </div>
+
+            <div class="probabilities">
+                <h4>Emotion Probabilities</h4>
+                <div id="probabilitiesContainer"></div>
+            </div>
+        </div>
+
+        <div class="samples-section" id="samplesSection"></div>
+    </div>
+
+    <script>
+        function analyzeEmotion() {
+            const text = document.getElementById('textInput').value.trim();
+            const errorDiv = document.getElementById('errorMessage');
+
+            if (!text) {
+                errorDiv.textContent = '⚠️ Please enter some text to analyze';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            errorDiv.classList.remove('show');
+            document.getElementById('loading').classList.add('show');
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.remove('show');
+                
+                if (data.error) {
+                    errorDiv.textContent = '❌ Error: ' + data.error;
+                    errorDiv.classList.add('show');
+                    return;
+                }
+
+                displayResult(data);
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.remove('show');
+                errorDiv.textContent = '❌ Network error: ' + error.message;
+                errorDiv.classList.add('show');
+            });
+        }
+
+        function displayResult(data) {
+            const resultSection = document.getElementById('resultSection');
+            const emotionBox = document.getElementById('emotionBox');
+            const confidenceBar = document.getElementById('confidenceBar');
+            const probabilitiesContainer = document.getElementById('probabilitiesContainer');
+
+            // Display emotion
+            emotionBox.textContent = data.emotion.toUpperCase();
+            emotionBox.style.backgroundColor = data.color;
+
+            // Display confidence
+            const confidencePercent = Math.round(data.confidence * 100);
+            confidenceBar.style.width = confidencePercent + '%';
+            confidenceBar.textContent = confidencePercent + '%';
+
+            // Display probabilities
+            probabilitiesContainer.innerHTML = '';
+            for (const [emotion, probability] of Object.entries(data.emotion_probabilities)) {
+                const percent = Math.round(probability * 100);
+                const color = {
+                    'joy': '#FFD700',
+                    'sadness': '#4169E1',
+                    'anger': '#FF4500',
+                    'fear': '#8B008B',
+                    'love': '#FF69B4',
+                    'surprise': '#00CED1'
+                }[emotion] || '#CCCCCC';
+
+                const item = document.createElement('div');
+                item.className = 'probability-item';
+                item.innerHTML = `
+                    <span class="probability-label">${emotion}</span>
+                    <div class="probability-bar-wrapper">
+                        <div class="probability-bar" style="width: ${percent}%; background: ${color};">
+                            ${percent}%
+                        </div>
+                    </div>
+                    <span class="probability-percentage">${percent}%</span>
+                `;
+                probabilitiesContainer.appendChild(item);
+            }
+
+            resultSection.classList.add('show');
+        }
+
+        function loadSamples() {
+            document.getElementById('loading').classList.add('show');
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.remove('show');
+
+            fetch('/test-samples')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.remove('show');
+
+                if (data.error) {
+                    errorDiv.textContent = '❌ Error: ' + data.error;
+                    errorDiv.classList.add('show');
+                    return;
+                }
+
+                displaySamples(data);
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.remove('show');
+                errorDiv.textContent = '❌ Network error: ' + error.message;
+                errorDiv.classList.add('show');
+            });
+        }
+
+        function displaySamples(samples) {
+            const samplesSection = document.getElementById('samplesSection');
+            samplesSection.innerHTML = '<h3>📚 Sample Predictions</h3>';
+
+            samples.forEach(sample => {
+                const item = document.createElement('div');
+                item.className = 'sample-item';
+                item.style.borderLeftColor = sample.color;
+                
+                const confidence = Math.round(sample.confidence * 100);
+                
+                item.innerHTML = `
+                    <div class="sample-text">${sample.text}</div>
+                    <div class="sample-emotion" style="background-color: ${sample.color};">
+                        ${sample.emotion} (${confidence}%)
+                    </div>
+                `;
+                samplesSection.appendChild(item);
+            });
+        }
+
+        // Allow Enter key to analyze
+        document.getElementById('textInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                analyzeEmotion();
+            }
+        });
+    </script>
+</body>
+</html>
